@@ -417,6 +417,7 @@ const getUnitName = (tenant: any) => {
                     
                     <TableHead>Monthly Rent</TableHead>
                     
+                    
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -480,12 +481,9 @@ const getUnitName = (tenant: any) => {
                     variant="ghost"
                     size="icon"
                     className="h-9 w-9 flex-shrink-0"
-                    onClick={() => {
-                      setSelectedTenant(tenant);
-                      setIsEditDialogOpen(true);
-                    }}
+                    
                   >
-                    <Edit className="h-4 w-4 text-muted-foreground" />
+                    
                   </Button>
                 </div>
                 

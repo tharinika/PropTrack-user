@@ -115,6 +115,7 @@ useEffect(() => {
 useEffect(() => {
   const fetchLandlord = async () => {
     if (!tenantData?.landlord_id) return;
+    console.log("tenant landlord_id:",tenantData?.landlord_id);
 
     const { data, error } = await supabase
       .from('landlord_payment_details')
@@ -135,7 +136,7 @@ useEffect(() => {
   fetchLandlord();
 }, [tenantData]);
   // Check if landlord has UPI QR code
-  const hasLandlordQrCode = !landlordInfo?.qr_code|| !!landlordInfo?.upi_id;
+  const hasLandlordQrCode = !!landlordInfo?.qr_code|| !!landlordInfo?.upi_id;
   
   // Calculate monthly rent from property unit data
   const baseRent = tenantUnit?.rent || 0;
@@ -407,7 +408,7 @@ const latestPayment = sortedPayments[0];
           open={isUpiDialogOpen}
           onOpenChange={setIsUpiDialogOpen}
           landlordName={landlordInfo.name}
-          rentAmount={amountDue}
+          rentAmount={currentRent.toLocaleString()}
           qrCodeUrl={landlordInfo.qr_code}
           upiId={landlordInfo.upi_id}
         />

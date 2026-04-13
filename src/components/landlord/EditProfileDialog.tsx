@@ -263,15 +263,11 @@ export function EditProfileDialog({ open, onOpenChange, scrollToPayment = false 
     setQrCodePreview(null);
   };
 
-  const handleSave = async() => {
-    await supabase.from('landlord_payment_details').upsert([
-  {
-    landlord_id: user?.id,
-    upi_id: upiId,
-    qr_code: qrCodePreview
-  }
-]);
-    // Validate passwords if changing
+  const handleSave = async () => {
+  try {
+    // ===============================
+    // 1️⃣ PASSWORD VALIDATION (optional)
+    // ===============================
     if (formData.newPassword || formData.confirmPassword || formData.currentPassword) {
       if (!validateCurrentPassword(formData.currentPassword)) {
         setCurrentPasswordError('Current password is incorrect.');
@@ -288,59 +284,100 @@ export function EditProfileDialog({ open, onOpenChange, scrollToPayment = false 
         setConfirmPasswordError('Passwords do not match.');
         return;
       }
+    }
 
-      // Update password in localStorage
+    // ===============================
+    // 2️⃣ SAVE UPI + QR TO SUPABASE (ALWAYS RUN)
+    // ===============================
+    console.log("Saving UPI:", upiId, "User:", user?.id);
+
+    const { error } = await supabase
+      .from('landlord_payment_details')
+      .upsert(
+        {
+          landlord_id: user?.id,
+          upi_id: upiId,
+          qr_code: qrCodePreview,
+        },
+        { onConflict: 'landlord_id' } // VERY IMPORTANT
+      );
+
+    if (error) {
+      console.error("UPI SAVE ERROR:", error);
+      toast.error("Failed to save payment details");
+      return;
+    }
+
+    // ===============================
+    // 3️⃣ UPDATE PASSWORD (if needed)
+    // ===============================
+    if (formData.newPassword) {
       const savedAccounts = localStorage.getItem('proptrack_accounts');
+
       if (savedAccounts) {
         const accounts = JSON.parse(savedAccounts);
-        const accountIndex = accounts.findIndex((acc: any) => acc.email === user?.email);
-        if (accountIndex !== -1) {
-          accounts[accountIndex].password = formData.newPassword;
+        const index = accounts.findIndex((acc: any) => acc.email === user?.email);
+
+        if (index !== -1) {
+          accounts[index].password = formData.newPassword;
           localStorage.setItem('proptrack_accounts', JSON.stringify(accounts));
         }
       }
     }
 
-    // Save UPI Payment Details to localStorage
+    // ===============================
+    // 4️⃣ UPDATE LOCAL USER DATA
+    // ===============================
     const savedUser = localStorage.getItem('proptrack_user');
+
     if (savedUser) {
       const userData = JSON.parse(savedUser);
       userData.upiId = upiId;
       userData.upiQrCodeUrl = qrCodePreview;
+
       localStorage.setItem('proptrack_user', JSON.stringify(userData));
-      
-      // Also update the context by dispatching a storage event (this helps sync across components)
       window.dispatchEvent(new Event('storage'));
     }
 
-    // In real app, this would update the user profile
-    const changedPassword = formData.newPassword && formData.newPassword.length > 0;
-    const changedPaymentDetails = qrCodePreview !== user?.upiQrCodeUrl || upiId !== user?.upiId;
-    
-    let description = 'Your profile information has been successfully updated';
-    if (changedPassword && changedPaymentDetails) {
-      description = 'Your profile, password, and payment details have been successfully updated';
-    } else if (changedPassword) {
-      description = 'Your profile and password have been successfully updated';
-    } else if (changedPaymentDetails) {
-      description = 'Your profile and payment details have been successfully updated';
-    }
-    
-    toast.success('Profile Updated', { description });
+    // ===============================
+    // 5️⃣ SUCCESS MESSAGE
+    // ===============================
+    const changedPassword = !!formData.newPassword;
+    const changedPayment = !!upiId || !!qrCodePreview;
 
+    let description = "Profile updated successfully";
+
+    if (changedPassword && changedPayment) {
+      description = "Profile, password & payment details updated";
+    } else if (changedPassword) {
+      description = "Password updated successfully";
+    } else if (changedPayment) {
+      description = "Payment details updated successfully";
+    }
+
+    toast.success("Success", { description });
+
+    // ===============================
+    // 6️⃣ CLOSE MODAL + RESET
+    // ===============================
     onOpenChange(false);
-    
-    // Reset password fields and errors
+
     setFormData({
       ...formData,
       currentPassword: '',
       newPassword: '',
       confirmPassword: '',
     });
+
     setCurrentPasswordError('');
     setNewPasswordError('');
     setConfirmPasswordError('');
-  };
+
+  } catch (err) {
+    console.error("HANDLE SAVE ERROR:", err);
+    toast.error("Something went wrong");
+  }
+};
 
   const handleCancel = () => {
     onOpenChange(false);
