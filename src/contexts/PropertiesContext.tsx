@@ -78,7 +78,8 @@ export function PropertiesProvider({ children }: { children: ReactNode }) {
     number: u.unit_number,
     status: u.status,
     rent: u.rent,
-    monthlyElectricity: u.monthly_electricity || 0
+    monthlyElectricity: u.monthly_electricity || 0,
+    totalMonthly:u.total_monthly
   })),
 
   occupiedUnits: (p.units || []).filter(u => u.status === 'occupied').length,

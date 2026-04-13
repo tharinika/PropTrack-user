@@ -17,6 +17,7 @@ interface Unit {
   tenant?: string;
   rent: number;
   monthlyElectricity: number;
+  totalMonthly:number;
 }
 
 interface PropertyCharges {
@@ -144,11 +145,7 @@ export function AddTenantDialog({ open, onOpenChange, onAdd, properties }: AddTe
     if (selectedUnit && selectedProperty) {
       // Calculate total monthly payable: Base Rent + All Charges
       const totalMonthlyPayable = 
-        selectedUnit.rent + 
-        selectedUnit.monthlyElectricity + 
-        selectedProperty.propertyCharges.maintenanceFee + 
-        selectedProperty.propertyCharges.waterBill + 
-        selectedProperty.propertyCharges.gasBill;
+        selectedUnit.totalMonthly||0;
       
       setTenantData(prev => ({ ...prev, monthlyRent: totalMonthlyPayable }));
     }
@@ -277,7 +274,8 @@ if (existingPayment) {
       unit_id: selectedUnitId,
       amount: tenantData.monthlyRent,
       status: 'pending',
-      due_date: dueDate
+      due_date: dueDate,
+      landlord_id:user.id
     });
 }
 

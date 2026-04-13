@@ -22,6 +22,8 @@ export function TenantsView() {
   const { user } = useAuth();
   const [dbProperties,setDbProperties]=useState([]);
   const { properties, updateProperty } = useProperties();
+  const [propertiesData, setPropertiesData] = useState([]);
+const [tenantsData, setTenantsData] = useState([]);
   const { tenants, addTenant, updateTenant, deleteTenant } = useAppData();
   const { addTenantToCommunity, updateTenantInCommunity, removeTenantFromCommunity } = useCommunity();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -100,10 +102,10 @@ const fetchProperties = async () => {
 
   // Filter tenants based on search query
   const filteredTenants = dbProperties.filter(tenant => 
-    tenant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    tenant.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    tenant.property.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    tenant.unit.toLowerCase().includes(searchQuery.toLowerCase())
+    tenant.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    tenant.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    tenant.property?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    tenant.unit?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 const getTenantTotal = (tenant: any) => {
   const property = dbProperties.find(
@@ -338,7 +340,7 @@ const getUnitName = (tenant: any) => {
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
         onAdd={handleAddTenant}
-        properties={dbProperties || []}
+        properties={properties || []}
       />
 
       {/* Edit Tenant Dialog */}
