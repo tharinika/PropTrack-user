@@ -68,10 +68,19 @@ const overdue = payments
   payment.status?.toLowerCase().includes(searchQuery.toLowerCase())
 );
 
-  const handleStatusChange = async (paymentId: string, newStatus: 'paid' | 'pending' | 'overdue') => {
+  const handleStatusChange = async (paymentId, newStatus) => {
+  const updateData: any = {
+    status: newStatus
+  };
+
+  // 🔥 IMPORTANT: Set paid_date when marked as paid
+  if (newStatus === 'paid') {
+    updateData.paid_date = new Date().toISOString();
+  }
+
   const { error } = await supabase
     .from('payments')
-    .update({ status: newStatus })
+    .update(updateData)
     .eq('id', paymentId);
 
   if (error) {
@@ -79,12 +88,13 @@ const overdue = payments
     return;
   }
 
-  // refresh UI
-  setPayments((prev:any[]) =>
-    prev.map((p:any) =>
-      p.id === paymentId ? { ...p, status: newStatus } : p
+  // update UI
+  setPayments((prev) =>
+    prev.map((p) =>
+      p.id === paymentId ? { ...p, ...updateData } : p
     )
   );
+
   window.dispatchEvent(new Event('payments-updated'));
 };
 

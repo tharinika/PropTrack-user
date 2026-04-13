@@ -132,7 +132,7 @@ useEffect(() => {
   
   // Get last payment (most recent paid payment)
   const lastPayment = paidPayments.length > 0 
-    ? paidPayments.sort((a, b) => new Date(b.paidDate || '').getTime() - new Date(a.paidDate || '').getTime())[0]
+    ? paidPayments.sort((a, b) => new Date(b.paid_date ||b.due_date).getTime() - new Date(a.paidDate || '').getTime())[0]
     : null;
   
   // ============================================================================
@@ -208,7 +208,7 @@ useEffect(() => {
       id: `payment-${payment.id}`,
       type: 'payment' as const,
       description: 'Rent Payment',
-      date: new Date(payment.paidDate || payment.dueDate),
+      date: new Date(payment.paid_date || payment.due_date),
       amount: payment.amount,
       status: 'completed' as const,
     })),
@@ -327,7 +327,7 @@ useEffect(() => {
                 <div>
                   <p className="text-sm text-muted-foreground">Last Payment</p>
                   <p className="font-medium">
-                    {new Date(lastPayment.paidDate || '').toLocaleDateString('en-IN')}
+                    {new Date(lastPayment.paid_date || lastPayment.due_date).toLocaleDateString('en-IN')}
                   </p>
                 </div>
                 <div className="text-primary font-semibold">
