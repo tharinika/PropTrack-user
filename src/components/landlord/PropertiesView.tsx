@@ -48,7 +48,8 @@ export function PropertiesView() {
   const fetchProperties = async () => {
   const { data, error } = await supabase
     .from('properties')
-    .select('*,units(*)');
+    .select('*,units(*)')
+    .eq('landlord_id',user.id);
 
   if (error) {
     console.error(error);

@@ -43,7 +43,8 @@ const overdue = payments
   const fetchPayments = async () => {
     const { data, error } = await supabase
       .from('payments')
-      .select('*,units!payments_unit_id_fkey(total_monthly,rent,monthly_electricity)');
+      .select('*,units!payments_unit_id_fkey(total_monthly,rent,monthly_electricity)')
+      .eq('landlord_id',user.id);
 
     if (error) {
       console.error("Error fetching payments:", error);
