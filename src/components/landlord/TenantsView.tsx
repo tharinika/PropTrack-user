@@ -46,33 +46,32 @@ export function TenantsView() {
 
 const fetchProperties = async () => {
   const { data, error } = await supabase
-    .from('properties')
-    .select('*, units(*)');
+  .from('users')
+  .select(`
+    *,
+    units:unit_id (
+      id,
+      total_monthly,
+      rent,
+      monthly_electricity,
+      unit_number
+    ),
+    properties:property_id (
+      id,
+      name
+    )
+  `)
+  .eq('role', 'tenant')
+  .eq('landlord_id', user.id);
 
   if (error) {
     console.error(error);
     return;
   }
 
-  const formatted = data.map(p => ({
-    ...p,
-    units: (p.units || []).map(u => ({
-      id: u.id,
-      number: u.unit_number,
-      status: u.status,
-      rent: u.rent,
-      monthlyElectricity: u.monthly_electricity || 0,
-      totalMonthly:u.total_monthly||0
-    })),
-    propertyCharges: {
-      maintenanceFee: p.maintenance_fee || 0,
-      waterBill: p.water_bill || 0,
-      gasBill: p.gas_bill || 0
-    },
-    occupiedUnits: (p.units || []).filter(u => u.status === 'occupied').length
-  }));
+ 
 
-  setDbProperties(formatted);
+  setDbProperties(data);
 };
 
   // Helper function to get lease end date color
@@ -100,7 +99,7 @@ const fetchProperties = async () => {
   };
 
   // Filter tenants based on search query
-  const filteredTenants = tenants.filter(tenant => 
+  const filteredTenants = dbProperties.filter(tenant => 
     tenant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     tenant.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
     tenant.property.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -129,6 +128,8 @@ const getTenantTotal = (tenant: any) => {
       phone: newTenantData.phone,
       unit: newTenantData.unit,
       property: newTenantData.property,
+      unitId:newTenantData.unitId,
+      propertyId:newTenantData.propertyId,
       leaseStart: newTenantData.leaseStart,
       leaseEnd: newTenantData.leaseEnd,
       monthlyRent: newTenantData.monthlyRent
@@ -417,7 +418,7 @@ const getUnitName = (tenant: any) => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredTenants.map((tenant) => (
+                  {dbProperties.map((tenant) => (
                     <TableRow key={tenant.id}>
                       <TableCell>
                         <div>
@@ -437,17 +438,17 @@ const getUnitName = (tenant: any) => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-muted-foreground">{tenant.property}</span>
+                        <span className="text-sm text-muted-foreground">{tenant.properties?.name}</span>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Home className="w-4 h-4 text-muted-foreground" />
-                          <span className="font-medium">{tenant.unit}</span>
+                          <span className="font-medium">{tenant.units?.unit_number}</span>
                         </div>
                       </TableCell>
   
                       <TableCell>
-                        <span className="font-medium text-primary">₹{getTenantTotal(tenant).toLocaleString()}</span>
+                        <span className="font-medium text-primary">₹{tenant.units?.total_monthly||0}</span>
                       </TableCell>
                       
                     </TableRow>
@@ -489,13 +490,13 @@ const getUnitName = (tenant: any) => {
                 <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border">
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Property</p>
-                    <p className="text-sm font-medium">{tenant.property}</p>
+                    <p className="text-sm font-medium">{tenant.properties?.name}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Unit</p>
                     <div className="flex items-center gap-1.5">
                       <Home className="w-3.5 h-3.5 text-muted-foreground" />
-                      <p className="text-sm font-medium">{tenant.unit}</p>
+                      <p className="text-sm font-medium">{tenant.units?.number}</p>
                     </div>
                   </div>
                   <div>
@@ -504,7 +505,7 @@ const getUnitName = (tenant: any) => {
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Monthly Rent</p>
-                    <p className="text-sm font-semibold text-primary">₹{getTenantTotal(tenant).toLocaleString()}</p>
+                    <p className="text-sm font-semibold text-primary">₹{tenant.units?.total_monthly||0}</p>
                   </div>
                 </div>
               </Card>

@@ -98,13 +98,22 @@ export function AddPropertyDialog({ open, onOpenChange, onAdd }: AddPropertyDial
     console.log("✅ Property inserted:", propertyData);
 
     // 2️⃣ Insert units
-    const unitsToInsert = property.units.map((unit) => ({
-      property_id: propertyData.id,
-      unit_number: unit.number,
-      rent: unit.rent,
-      status: 'vacant',
-      monthly_electricity: unit.monthlyElectricity
-    }));
+    const unitsToInsert = property.units.map((unit) => {
+  const totalMonthly =
+    unit.rent +
+    property.propertyCharges.maintenanceFee +
+    property.propertyCharges.waterBill +
+    property.propertyCharges.gasBill;
+
+  return {
+    property_id: propertyData.id,
+    unit_number: unit.number,
+    rent: unit.rent,
+    status: 'vacant',
+    monthly_electricity: unit.monthlyElectricity,
+    total_monthly: totalMonthly   // ✅ ADD THIS
+  };
+});
 
     const { data: insertedUnits, error: unitsError } = await supabase
       .from('units')

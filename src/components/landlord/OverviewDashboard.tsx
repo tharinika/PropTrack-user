@@ -39,7 +39,8 @@ const totalTenants = properties.reduce(
   const fetchPayments = async () => {
   const { data, error } = await supabase
     .from('payments')
-    .select('*');
+    .select('*')
+    .eq('landlord_id',user.id);
 
   if (!error) setPaymentsData(data || []);
 };
